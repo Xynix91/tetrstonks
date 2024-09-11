@@ -1,6 +1,6 @@
 import discord
 from discord.ext import tasks, commands
-from stonksapi import pay_dividends, make_sell_offer, retract_sell_offer, buy_stocks, show_offers, get_leaderboard
+from stonksapi import pay_dividends, make_sell_offer, retract_sell_offer, buy_stocks, show_offers, get_leaderboard, get_investor
 import asyncio
 import datetime
 import pytz
@@ -50,7 +50,24 @@ async def leaderboard(ctx):
     lines = []
     for i in lb_data:
         username = await bot.fetch_user(i['id'])
-        lines.append(f"{username}: {i['balance']}")
+        lines.append(f"{username}: {i['balance']} coins")
+    await ctx.channel.send("\n".join(lines))
+
+@bot.command(aliases=['investorinfo'])
+async def playerinfo(ctx, id=None):
+    if id is None:
+        id = ctx.author.id
+    elif type(id) != int and id[:2] == "<@" and id[-1] == ">":
+        id = int(id[2:-1])
+    player_data = get_investor(id)
+    lines = []
+    username = await bot.fetch_user(id)
+    lines.append(str(username))
+    lines.append(f"Balance: {player_data['balance']}")
+    lines.append("")
+    lines.append("Portfolio:")
+    for stock, value in player_data['portfolio'].items():
+        lines.append(f"{stock}: {value}")
     await ctx.channel.send("\n".join(lines))
 
 @bot.command()
