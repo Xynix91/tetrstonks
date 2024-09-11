@@ -1,0 +1,68 @@
+import json
+import requests
+
+investors = {}
+#'xynix': {
+#    'balance': 0,
+#    'portfolio': {}
+#}
+
+sell_offers = {}
+
+def pay_dividends():
+    entries = requests.get('https://ch.tetr.io/api/users/by/league?limit=100').json()['data']['entries']
+    baseline = requests.get(f'https://ch.tetr.io/api/users/by/league?limit=1&after={entries[-1]["league"]["tr"] - 0.00000001}:0:1e-10').json()['data']['entries'][0]['league']['tr']
+
+    payouts = {entry['_id']: entry['league']['tr'] - baseline for entry in entries}
+
+    for investor in investors:
+        for stock in investor['portfolio']:
+            if stock in payouts:
+                investor['balance'] += investor['portfolio']['stock'] * payouts * 0.01
+
+def make_sell_offer(seller, stock, price, maximum):
+    if stock not in sell_offers:
+        sell_offers[stock] = {'total': 0, 'offers': []}
+
+    for offer in sell_offers[stock]['offers']:
+        if offer['seller'] == seller:
+            return
+
+    sell_offers[stock]['offers'].append({'seller': seller, 'stock': stock, 'price': price, 'maximum': maximum})
+    sell_offers[stock]['total'] += maximum 
+
+    sell_offers[stock]['offers'].sort(key=lambda a: -a['price'])
+
+def retract_sell_offer(seller, stock):
+    if stock not in sell_offers:
+        return
+
+    for i, offer in enumerate(sell_offers[stock]['offers']):
+        if offer['seller'] == seller:
+            del sell_offers[stock]['offers'][i]
+            return
+
+def buy_stocks(buyer, stock, value):
+    if value >= investors[buyer]['balance'] or value <= 0 or stock not in sell_offers or value > sell_offers[stock]['total']:
+        return
+
+    if stock not in investors[buyer]['portfolio']:
+        investors[buyer]['portfolio'][stock] = 0
+
+    while value > 0:
+        curr = sell_offers[stock]['offers'][-1]
+        if value > curr['maximum']:
+            value -= curr['maximum']
+
+            investors[buyer]['portfolio'][stock] += curr['maximum'] / curr['price']
+
+            del sell_offers[stock]['offers'][-1]
+
+        else:
+            curr['maximum'] -= value
+            investors[buyer]['portfolio'][stock] += value / curr['price']
+
+            value = 0
+
+pay_dividends()
+
