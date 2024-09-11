@@ -20,7 +20,7 @@ class StonksBot(commands.Bot):
     async def daily_dividend(self):
         pay_dividends()
     
-    @tasks.loop(hours=1)
+    @tasks.loop(minutes=5)
     async def update_cache(self):
         print('thing')
 
