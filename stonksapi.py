@@ -3,7 +3,8 @@ import requests
 
 INVESTORS = 'investors.json'
 SELL_OFFERS = 'sell_offers.json'
-USERNAME_CACHE = 'username_cache.json'
+
+USERNAME_CACHE = {'ids': {}, 'usernames': {}}
 
 def get(fname):
     f = open(fname, 'r')
@@ -18,28 +19,22 @@ def write(fname, data):
     f.close()
 
 def tio_id(username):
-    cache = get(USERNAME_CACHE)
-    if username in cache['ids']:
-        return cache['ids'][username]
+    if username in USERNAME_CACHE['ids']:
+        return USERNAME_CACHE['ids'][username]
 
     t_id = requests.get(f"https://ch.tetr.io/api/users/{username}").json()['data']['_id']
-    cache['ids'][username] = t_id
-    cache['usernames'][t_id] = username
-
-    write(USERNAME_CACHE, cache)
+    USERNAME_CACHE['ids'][username] = t_id
+    USERNAME_CACHE['usernames'][t_id] = username
 
     return t_id
 
 def tio_username(t_id):
-    cache = get(USERNAME_CACHE)
-    if t_id in cache['usernames']:
-        return cache['usernames'][t_id]
+    if t_id in USERNAME_CACHE['usernames']:
+        return USERNAME_CACHE['usernames'][t_id]
 
     username = requests.get(f"https://ch.tetr.io/api/users/{t_id}").json()['data']['username']
-    cache['ids'][username] = t_id
-    cache['usernames'][t_id] = username
-
-    write(USERNAME_CACHE, cache)
+    USERNAME_CACHE['ids'][username] = t_id
+    USERNAME_CACHE['usernames'][t_id] = username
 
     return username
 
@@ -55,7 +50,7 @@ def update_cache():
         usernames[entry['_id']] = entry['username']
         ids[entry['username']] = entry['_id']
 
-    write(USERNAME_CACHE, {'ids': ids, 'usernames': usernames})
+    USERNAME_CACHE = {'ids': ids, 'usernames': usernames}
 
 def get_investor(investor):
     investor = str(investor)
