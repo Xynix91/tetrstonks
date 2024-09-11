@@ -2,10 +2,6 @@ import json
 import requests
 
 investors = {}
-#'xynix': {
-#    'balance': 0,
-#    'portfolio': {}
-#}
 
 sell_offers = {}
 
@@ -15,6 +11,7 @@ def pay_dividends():
 
     payouts = {entry['_id']: entry['league']['tr'] - baseline for entry in entries}
 
+    with investors 
     for investor in investors:
         for stock in investor['portfolio']:
             if stock in payouts:
