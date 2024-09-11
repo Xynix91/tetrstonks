@@ -29,7 +29,8 @@ def pay_dividends():
     payouts = {entry['_id']: entry['league']['tr'] - baseline for entry in entries}
 
     investors = get(INVESTORS)
-    for investor in investors:
+    for investor_id in investors:
+        investor = investors[investor_id]
         for stock in investor['portfolio']:
             if stock in payouts:
                 investor['balance'] += investor['portfolio']['stock'] * payouts * 0.01
@@ -86,8 +87,6 @@ def buy_stocks(buyer, stock, value):
     while value > 0:
         curr = sell_offers[stock]['offers'][-1]
         if value > curr['maximum']:
-            value -= curr['maximum']
-
             investors[buyer]['portfolio'][stock] += curr['maximum'] / curr['price']
             investors[curr['seller']]['portfolio'][stock] -= curr['maximum'] / curr['price']
 
@@ -95,8 +94,11 @@ def buy_stocks(buyer, stock, value):
 
             del sell_offers[stock]['offers'][-1]
 
+            value -= curr['maximum']
+
         else:
             investors[curr['seller']]['balance'] += value
+            investors[curr['seller']]['portfolio'][stock] -= value / curr['price']
 
             curr['maximum'] -= value
 
