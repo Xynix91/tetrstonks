@@ -1,6 +1,6 @@
 import discord
 from discord.ext import tasks, commands
-from stonksapi import pay_dividends, make_sell_offer, retract_sell_offer, buy_stocks, show_offers, show_investors
+from stonksapi import pay_dividends, make_sell_offer, retract_sell_offer, buy_stocks, show_offers, get_leaderboard
 import asyncio
 import datetime
 import pytz
@@ -45,8 +45,13 @@ async def retractoffer(ctx, stock):
     await ctx.channel.send(f"{ctx.author.name} has retracted their selling offer of {stock} stocks.")
 
 @bot.command()
-async def showplayers(ctx):
-    await ctx.channel.send(show_investors())
+async def leaderboard(ctx):
+    lb_data = get_leaderboard()
+    lines = []
+    for i in lb_data:
+        username = await bot.fetch_user(i['id'])
+        lines.append(f"{username}: {i['balance']}")
+    await ctx.channel.send("\n".join(lines))
 
 @bot.command()
 async def showoffers(ctx):

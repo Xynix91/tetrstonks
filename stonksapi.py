@@ -16,9 +16,9 @@ def write(fname, data):
     f.write(json.dumps(data))
     f.close()
 
-def show_investors():
+def get_leaderboard():
     investors = get(INVESTORS)
-    return sorted([{'id': player, 'balance': investors[player]['balance']} for player in investors if player != 'bank'], key=lambda a:a['balance'])
+    return sorted([{'id': player, 'balance': investors[player]['balance']} for player in investors if player != 'bank'], key=lambda a:-a['balance'])[:20]
 
 def show_offers():
     return get(SELL_OFFERS)
