@@ -3,6 +3,7 @@ import requests
 
 INVESTORS = 'investors.json'
 SELL_OFFERS = 'sell_offers.json'
+USERNAME_CACHE = 'username_cache.json'
 
 def get(fname):
     f = open(fname, 'r')
@@ -17,13 +18,44 @@ def write(fname, data):
     f.close()
 
 def tio_id(username):
-    return requests.get(f"https://ch.tetr.io/api/users/{username}").json()['data']['_id']
+    cache = get(USERNAME_CACHE)
+    if username in cache['ids']:
+        return cache['ids'][username]
 
-def tio_username(_id):
-    return requests.get(f"https://ch.tetr.io/api/users/{_id}").json()['data']['username']
+    t_id = requests.get(f"https://ch.tetr.io/api/users/{username}").json()['data']['_id']
+    cache['ids'][username] = t_id
+    cache['usernames'][t_id] = username
+
+    write(USERNAME_CACHE, cache)
+
+    return t_id
+
+def tio_username(t_id):
+    cache = get(USERNAME_CACHE)
+    if t_id in cache['usernames']:
+        return cache['usernames'][t_id]
+
+    username = requests.get(f"https://ch.tetr.io/api/users/{t_id}").json()['data']['username']
+    cache['ids'][username] = t_id
+    cache['usernames'][t_id] = username
+
+    write(USERNAME_CACHE, cache)
+
+    return username
 
 def tio_standing(username):
     return requests.get(f"https://ch.tetr.io/api/users/{username}/summaries/league").json()['data']['standing']
+
+def update_cache():
+    ids = {}
+    usernames = {}
+
+    entries = requests.get('https://ch.tetr.io/api/users/by/league?limit=100').json()['data']['entries']
+    for entry in entries:
+        usernames[entry['_id']] = entry['username']
+        ids[entry['username']] = entry['_id']
+
+    write(USERNAME_CACHE, {'ids': ids, 'usernames': usernames})
 
 def get_investor(investor):
     investor = str(investor)
