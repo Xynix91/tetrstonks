@@ -17,7 +17,8 @@ def write(fname, data):
     f.close()
 
 def show_investors():
-    return get(INVESTORS)
+    investors = get(INVESTORS)
+    return sorted([{'id': player, 'balance': investors[player]['balance']} for player in investors if player != 'bank'], key=lambda a:a['balance'])
 
 def show_offers():
     return get(SELL_OFFERS)
