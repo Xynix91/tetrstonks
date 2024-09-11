@@ -6,19 +6,18 @@ SELL_OFFERS = 'sell_offers.json'
 
 def get(fname):
     f = open(fname, 'r')
-    investors = json.loads(f.read())
+    file = json.loads(f.read())
     f.close()
 
-    return investors
+    return file
 
 def write(fname, data):
     f = open(fname, 'w')
     f.write(json.dumps(data))
     f.close()
 
-def get_leaderboard():
-    investors = get(INVESTORS)
-    return sorted([{'id': player, 'balance': investors[player]['balance']} for player in investors if player != 'bank'], key=lambda a:-a['balance'])[:20]
+def tio_get(username_or_id):
+    return requests.get(f"https://ch.tetr.io/api/users/{username_or_id}").json()['data']
 
 def get_investor(investor):
     investor = str(investor)
@@ -26,12 +25,28 @@ def get_investor(investor):
     investors = get(INVESTORS)
 
     if investor not in investors:
-        investors[investor] = {'balance': 10000, 'portfolio': {}, 'offered': 0}
+        investors[investor] = {'balance': 10000, 'portfolio': {}}
 
     return investors[investor]
 
-def show_offers():
-    return get(SELL_OFFERS)
+def get_leaderboard():
+    investors = get(INVESTORS)
+    return sorted([{'id': player, 'balance': investors[player]['balance']} for player in investors if player != 'bank'], key=lambda a:-a['balance'])[:20]
+
+def get_offers():
+    unformatted = get(SELL_OFFERS)
+    offers = []
+    for stock in unformatted:
+        name = tio_get(stock)['username']
+        for offer in unformatted[stock]['offers']:
+            offers.append({
+                'stock': name,
+                'seller': offer['seller'],
+                'price': offer['price'],
+                'quantity': offer['maximum'] / offer['price']
+            })
+
+    return offers
 
 def pay_dividends():
     entries = requests.get('https://ch.tetr.io/api/users/by/league?limit=100').json()['data']['entries']
@@ -90,7 +105,7 @@ def buy_stocks(buyer, stock, value):
     sell_offers = get(SELL_OFFERS)
 
     if buyer not in investors:
-        investors[buyer] = {'balance': 10000, 'portfolio': {}, 'offered': 0}
+        investors[buyer] = {'balance': 10000, 'portfolio': {}}
 
     if value > investors[buyer]['balance'] or value <= 0 or stock not in sell_offers or value > sell_offers[stock]['total']:
         write(INVESTORS, investors)
