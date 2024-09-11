@@ -1,6 +1,6 @@
 import discord
 from discord.ext import tasks, commands
-from stonksapi import pay_dividends, make_sell_offer, retract_sell_offer, buy_stocks, get_offers, get_leaderboard, get_investor
+from stonksapi import pay_dividends, make_sell_offer, retract_sell_offer, buy_stocks, get_offers, get_leaderboard, get_investor, update_cache
 import asyncio
 import datetime
 import pytz
@@ -22,12 +22,13 @@ class StonksBot(commands.Bot):
     
     @tasks.loop(minutes=5)
     async def update_cache(self):
-        print('thing')
+        update_cache()
+        print('Updated cache!')
 
     async def on_ready(self):
-        print(f'Logged on as {self.user}!')
         self.daily_dividend.start()
         self.update_cache.start()
+        print(f'Logged on as {self.user}!')
 
 intents = discord.Intents.default()
 intents.message_content = True
