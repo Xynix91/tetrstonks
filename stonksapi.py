@@ -16,6 +16,9 @@ def write(fname, data):
     f.write(json.dumps(data))
     f.close()
 
+def show_offers():
+    return get(SELL_OFFERS)
+
 def pay_dividends():
     entries = requests.get('https://ch.tetr.io/api/users/by/league?limit=100').json()['data']['entries']
     baseline = requests.get(f'https://ch.tetr.io/api/users/by/league?limit=1&after={entries[-1]["league"]["tr"] - 0.00000001}:0:1e-10').json()['data']['entries'][0]['league']['tr']
