@@ -1,9 +1,20 @@
 import json
 import requests
 
-investors = {}
+INVESTORS = 'investors.json'
+SELL_OFFERS = 'sell_offers.json'
 
-sell_offers = {}
+def get(fname):
+    f = open(fname, 'r')
+    investors = json.loads(f.read())
+    f.close()
+
+    return investors
+
+def write(fname, data):
+    f = open(fname, 'w')
+    f.write(json.dumps(data))
+    f.close()
 
 def pay_dividends():
     entries = requests.get('https://ch.tetr.io/api/users/by/league?limit=100').json()['data']['entries']
@@ -11,26 +22,31 @@ def pay_dividends():
 
     payouts = {entry['_id']: entry['league']['tr'] - baseline for entry in entries}
 
-    with investors 
+    investors = get(INVESTORS)
     for investor in investors:
         for stock in investor['portfolio']:
             if stock in payouts:
                 investor['balance'] += investor['portfolio']['stock'] * payouts * 0.01
+    write(INVESTORS, investors)
 
 def make_sell_offer(seller, stock, price, maximum):
+    sell_offers = get(SELL_OFFERS)
     if stock not in sell_offers:
         sell_offers[stock] = {'total': 0, 'offers': []}
 
     for offer in sell_offers[stock]['offers']:
         if offer['seller'] == seller:
+            write(SELL_OFFERS, sell_offers)
             return
 
     sell_offers[stock]['offers'].append({'seller': seller, 'stock': stock, 'price': price, 'maximum': maximum})
     sell_offers[stock]['total'] += maximum 
 
     sell_offers[stock]['offers'].sort(key=lambda a: -a['price'])
+    write(SELL_OFFERS, sell_offers)
 
 def retract_sell_offer(seller, stock):
+    sell_offers = get(SELL_OFFERS)
     if stock not in sell_offers:
         return
 
@@ -38,8 +54,11 @@ def retract_sell_offer(seller, stock):
         if offer['seller'] == seller:
             del sell_offers[stock]['offers'][i]
             return
+    write(SELL_OFFERS, sell_offers)
 
 def buy_stocks(buyer, stock, value):
+    investors = get(INVESTORS)
+    sell_offers = get(SELL_OFFERS)
     if value >= investors[buyer]['balance'] or value <= 0 or stock not in sell_offers or value > sell_offers[stock]['total']:
         return
 
@@ -60,6 +79,6 @@ def buy_stocks(buyer, stock, value):
             investors[buyer]['portfolio'][stock] += value / curr['price']
 
             value = 0
-
-pay_dividends()
+    write(INVESTORS, investors)
+    sell_offers = get(SELL_OFFERS)
 
