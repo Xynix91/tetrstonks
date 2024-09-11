@@ -33,7 +33,7 @@ def pay_dividends():
         investor = investors[investor_id]
         for stock in investor['portfolio']:
             if stock in payouts:
-                investor['balance'] += investor['portfolio'][stock] * payouts * 0.01
+                investor['balance'] += investor['portfolio'][stock] * payouts[stock] * 0.01
     write(INVESTORS, investors)
 
 def make_sell_offer(seller, stock, price, maximum):
