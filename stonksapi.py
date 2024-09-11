@@ -16,8 +16,14 @@ def write(fname, data):
     f.write(json.dumps(data))
     f.close()
 
-def tio_get(username_or_id):
-    return requests.get(f"https://ch.tetr.io/api/users/{username_or_id}").json()['data']
+def tio_id(username):
+    return requests.get(f"https://ch.tetr.io/api/users/{username}").json()['data']['_id']
+
+def tio_username(_id):
+    return requests.get(f"https://ch.tetr.io/api/users/{_id}").json()['data']['username']
+
+def tio_standing(username):
+    return requests.get(f"https://ch.tetr.io/api/users/{username}/summaries/league").json()['data']['standing']
 
 def get_investor(investor):
     investor = str(investor)
@@ -27,6 +33,9 @@ def get_investor(investor):
     if investor not in investors:
         investors[investor] = {'balance': 10000, 'portfolio': {}}
 
+    portfolio = investors[investor]['portfolio']
+    portfolio = {tio_username(stock):portfolio[stock] for stock in portfolio}
+    investors[investor]['portfolio'] = portfolio
     return investors[investor]
 
 def get_leaderboard():
@@ -37,7 +46,7 @@ def get_offers():
     unformatted = get(SELL_OFFERS)
     offers = []
     for stock in unformatted:
-        name = tio_get(stock)['username']
+        name = tio_username(stock)
         for offer in unformatted[stock]['offers']:
             offers.append({
                 'stock': name,
@@ -63,7 +72,11 @@ def pay_dividends():
     write(INVESTORS, investors)
 
 def make_sell_offer(seller, stock, price, maximum):
-    seller = str(seller)
+    standing = tio_standing(stock)
+    if standing > 100:
+        return
+
+    stock = tio_id(stock)
 
     investors = get(INVESTORS)
     if stock not in investors[seller]['portfolio'] or maximum / price > investors[seller]['portfolio'][stock]:
@@ -85,7 +98,7 @@ def make_sell_offer(seller, stock, price, maximum):
     write(SELL_OFFERS, sell_offers)
 
 def retract_sell_offer(seller, stock):
-    seller = str(seller)
+    stock = tio_id(stock)
 
     sell_offers = get(SELL_OFFERS)
     if stock not in sell_offers:
@@ -99,10 +112,10 @@ def retract_sell_offer(seller, stock):
     write(SELL_OFFERS, sell_offers)
 
 def buy_stocks(buyer, stock, value):
-    buyer = str(buyer)
-
     investors = get(INVESTORS)
     sell_offers = get(SELL_OFFERS)
+
+    stock = tio_id(stock)
 
     if buyer not in investors:
         investors[buyer] = {'balance': 10000, 'portfolio': {}}
