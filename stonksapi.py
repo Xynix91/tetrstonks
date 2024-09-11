@@ -21,7 +21,13 @@ def get_leaderboard():
     return sorted([{'id': player, 'balance': investors[player]['balance']} for player in investors if player != 'bank'], key=lambda a:-a['balance'])[:20]
 
 def get_investor(investor):
+    investor = str(investor)
+
     investors = get(INVESTORS)
+
+    if investor not in investors:
+        investors[investor] = {'balance': 10000, 'portfolio': {}, 'offered': 0}
+
     return investors[investor]
 
 def show_offers():
@@ -42,6 +48,8 @@ def pay_dividends():
     write(INVESTORS, investors)
 
 def make_sell_offer(seller, stock, price, maximum):
+    seller = str(seller)
+
     investors = get(INVESTORS)
     if stock not in investors[seller]['portfolio'] or maximum / price > investors[seller]['portfolio'][stock]:
         return
@@ -62,6 +70,8 @@ def make_sell_offer(seller, stock, price, maximum):
     write(SELL_OFFERS, sell_offers)
 
 def retract_sell_offer(seller, stock):
+    seller = str(seller)
+
     sell_offers = get(SELL_OFFERS)
     if stock not in sell_offers:
         return
@@ -74,13 +84,12 @@ def retract_sell_offer(seller, stock):
     write(SELL_OFFERS, sell_offers)
 
 def buy_stocks(buyer, stock, value):
+    buyer = str(buyer)
+
     investors = get(INVESTORS)
     sell_offers = get(SELL_OFFERS)
 
     if buyer not in investors:
-        print(investors)
-        print(buyer)
-        print()
         investors[buyer] = {'balance': 10000, 'portfolio': {}, 'offered': 0}
 
     if value > investors[buyer]['balance'] or value <= 0 or stock not in sell_offers or value > sell_offers[stock]['total']:
