@@ -36,6 +36,10 @@ def pay_dividends():
     write(INVESTORS, investors)
 
 def make_sell_offer(seller, stock, price, maximum):
+    investors = get(INVESTORS)
+    if stock not in investors[seller]['portfolio'] or maximum / price > investors[seller]['portfolio'][stock]:
+        return
+
     sell_offers = get(SELL_OFFERS)
     if stock not in sell_offers:
         sell_offers[stock] = {'total': 0, 'offers': []}
@@ -68,30 +72,38 @@ def buy_stocks(buyer, stock, value):
     sell_offers = get(SELL_OFFERS)
 
     if buyer not in investors:
-        investors[buyer] = {'balance': 10000, 'portfolio': {}}
+        investors[buyer] = {'balance': 10000, 'portfolio': {}, 'offered': 0}
 
-    if value >= investors[buyer]['balance'] or value <= 0 or stock not in sell_offers or value > sell_offers[stock]['total']:
+    if value > investors[buyer]['balance'] or value <= 0 or stock not in sell_offers or value > sell_offers[stock]['total']:
         write(INVESTORS, investors)
         return
 
     if stock not in investors[buyer]['portfolio']:
         investors[buyer]['portfolio'][stock] = 0
 
+    sell_offers[stock]['total'] -= value
+    investors[buyer]['balance'] -= value
     while value > 0:
         curr = sell_offers[stock]['offers'][-1]
         if value > curr['maximum']:
             value -= curr['maximum']
 
             investors[buyer]['portfolio'][stock] += curr['maximum'] / curr['price']
+            investors[curr['seller']]['portfolio'][stock] -= curr['maximum'] / curr['price']
+
+            investors[curr['seller']]['balance'] -= curr['maximum']
 
             del sell_offers[stock]['offers'][-1]
 
         else:
+            investors[curr['seller']]['balance'] += value
+
             curr['maximum'] -= value
+
             investors[buyer]['portfolio'][stock] += value / curr['price']
-            investors[buyer]['balance'] -= value
 
             value = 0
+
     write(INVESTORS, investors)
     write(SELL_OFFERS, sell_offers)
 
