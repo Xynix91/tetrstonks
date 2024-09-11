@@ -16,6 +16,9 @@ def write(fname, data):
     f.write(json.dumps(data))
     f.close()
 
+def show_investors():
+    return get(INVESTORS)
+
 def show_offers():
     return get(SELL_OFFERS)
 
@@ -86,8 +89,9 @@ def buy_stocks(buyer, stock, value):
         else:
             curr['maximum'] -= value
             investors[buyer]['portfolio'][stock] += value / curr['price']
+            investors[buyer]['balance'] -= value
 
             value = 0
     write(INVESTORS, investors)
-    sell_offers = get(SELL_OFFERS)
+    write(SELL_OFFERS, sell_offers)
 
