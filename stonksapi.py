@@ -59,6 +59,10 @@ def retract_sell_offer(seller, stock):
 def buy_stocks(buyer, stock, value):
     investors = get(INVESTORS)
     sell_offers = get(SELL_OFFERS)
+
+    if buyer not in investors:
+        investors[buyer] = {'balance': 10000, 'portfolio': {}}
+
     if value >= investors[buyer]['balance'] or value <= 0 or stock not in sell_offers or value > sell_offers[stock]['total']:
         return
 
