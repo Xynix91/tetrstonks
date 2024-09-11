@@ -20,6 +20,10 @@ def get_leaderboard():
     investors = get(INVESTORS)
     return sorted([{'id': player, 'balance': investors[player]['balance']} for player in investors if player != 'bank'], key=lambda a:-a['balance'])[:20]
 
+def get_investor(investor):
+    investors = get(INVESTORS)
+    return investors[investor]
+
 def show_offers():
     return get(SELL_OFFERS)
 
@@ -74,6 +78,9 @@ def buy_stocks(buyer, stock, value):
     sell_offers = get(SELL_OFFERS)
 
     if buyer not in investors:
+        print(investors)
+        print(buyer)
+        print()
         investors[buyer] = {'balance': 10000, 'portfolio': {}, 'offered': 0}
 
     if value > investors[buyer]['balance'] or value <= 0 or stock not in sell_offers or value > sell_offers[stock]['total']:
