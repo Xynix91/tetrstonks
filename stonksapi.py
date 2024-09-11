@@ -55,8 +55,9 @@ def retract_sell_offer(seller, stock):
 
     for i, offer in enumerate(sell_offers[stock]['offers']):
         if offer['seller'] == seller:
+            sell_offers[stock]['total'] -= offer['maximum']
             del sell_offers[stock]['offers'][i]
-            return
+            break
     write(SELL_OFFERS, sell_offers)
 
 def buy_stocks(buyer, stock, value):
@@ -67,6 +68,7 @@ def buy_stocks(buyer, stock, value):
         investors[buyer] = {'balance': 10000, 'portfolio': {}}
 
     if value >= investors[buyer]['balance'] or value <= 0 or stock not in sell_offers or value > sell_offers[stock]['total']:
+        write(INVESTORS, investors)
         return
 
     if stock not in investors[buyer]['portfolio']:
