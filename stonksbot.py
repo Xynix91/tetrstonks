@@ -20,9 +20,14 @@ class StonksBot(commands.Bot):
     async def daily_dividend(self):
         pay_dividends()
     
+    @tasks.loop(minutes=5)
+    async def update_cache(self):
+        print('thing')
+
     async def on_ready(self):
         print(f'Logged on as {self.user}!')
         self.daily_dividend.start()
+        self.update_cache.start()
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -32,7 +37,7 @@ bot = StonksBot()
 @bot.command()
 async def buy(ctx, stock, value):
     buy_stocks(str(ctx.author.id), stock, float(value))
-    await ctx.channel.send(f"{ctx.author.name} bought {stock} for {value}!")
+    await ctx.channel.send(f"{ctx.author.name} bought {value} of {stock} stock!")
 
 @bot.command()
 async def selloffer(ctx, stock, price, maximum):
