@@ -1,6 +1,6 @@
 import discord
 from discord.ext import tasks, commands
-from stonksapi import pay_dividends, make_sell_offer, retract_sell_offer, buy_stocks, show_offers, get_leaderboard, get_investor
+from stonksapi import pay_dividends, make_sell_offer, retract_sell_offer, buy_stocks, get_offers, get_leaderboard, get_investor
 import asyncio
 import datetime
 import pytz
@@ -31,17 +31,19 @@ bot = StonksBot()
 
 @bot.command()
 async def buy(ctx, stock, value):
-    buy_stocks(ctx.author.id, stock, float(value))
+    buy_stocks(str(ctx.author.id), stock, float(value))
     await ctx.channel.send(f"{ctx.author.name} bought {stock} for {value}!")
 
 @bot.command()
 async def selloffer(ctx, stock, price, maximum):
-    make_sell_offer(ctx.author.id, stock, float(price), float(maximum))
+    price = float(price)
+    maximum = float(maximum)
+    make_sell_offer(str(ctx.author.id), stock, float(price), float(maximum))
     await ctx.channel.send(f"{ctx.author.name} is now selling {maximum/price} {stock} stocks for {price} coins each!")
 
 @bot.command()
 async def retractoffer(ctx, stock):
-    retract_sell_offer(ctx.author.id, stock)
+    retract_sell_offer(str(ctx.author.id), stock)
     await ctx.channel.send(f"{ctx.author.name} has retracted their selling offer of {stock} stocks.")
 
 @bot.command()
@@ -58,7 +60,7 @@ async def playerinfo(ctx, id=None):
     if id is None:
         id = ctx.author.id
     elif type(id) != int and id[:2] == "<@" and id[-1] == ">":
-        id = int(id[2:-1])
+        id = id[2:-1]
     player_data = get_investor(id)
     lines = []
     username = await bot.fetch_user(id)
@@ -71,7 +73,16 @@ async def playerinfo(ctx, id=None):
     await ctx.channel.send("\n".join(lines))
 
 @bot.command()
-async def showoffers(ctx):
-    await ctx.channel.send(show_offers())
+async def showoffers(ctx, page=1):
+    offer_data = get_offers()
+    lines = []
+    for i in offer_data:
+        if i['seller'] == "bank":
+            username = "The Bank"
+        else:
+            username = await bot.fetch_user(i['seller'])
+        lines.append(f"{username}: {i['quantity']} {i['stock']} stocks for {i['price']} each")
+    if (page - 1) * 10 < len(offer_data):
+        await ctx.channel.send("\n".join(lines[(page - 1 * 10):min(page * 10, len(offer_data))]))
 
 bot.run(TOKEN)
