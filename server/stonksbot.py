@@ -1,6 +1,6 @@
 import discord
 from discord.ext import tasks, commands
-from stonksapi import pay_dividends, make_sell_offer, retract_sell_offer, buy_stocks, get_offers, get_leaderboard, get_investor, update_cache
+from server.stonksapi import pay_dividends, make_sell_offer, retract_sell_offer, buy_stocks, get_offers, get_leaderboard, get_investor, update_cache
 import asyncio
 import datetime
 import pytz
