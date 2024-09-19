@@ -6,7 +6,8 @@ import datetime
 import pytz
 import os
 
-TOKEN = open("token.txt", "r").read()
+from django.conf import settings
+
 MIDNIGHT_TIME = datetime.time(hour=0)
 class StonksBot(commands.Bot):
     def __init__(self) -> None:
@@ -34,7 +35,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = StonksBot()
-
 @bot.command()
 async def buy(ctx, stock, value):
     buy_stocks(str(ctx.author.id), stock, float(value))
@@ -91,4 +91,10 @@ async def showoffers(ctx, page=1):
     if (page - 1) * 10 < len(offer_data):
         await ctx.channel.send("\n".join(lines[(page - 1 * 10):min(page * 10, len(offer_data))]))
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tetrstonks.server.server.settings")
+import sys
+sys.path.append(".")
+import django
+django.setup()
+TOKEN = open(os.path.join(settings.BASE_DIR, "bot_token.txt"), "r").read()
 bot.run(TOKEN)

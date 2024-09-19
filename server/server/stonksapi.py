@@ -1,5 +1,8 @@
 import json
 import requests
+import os
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 INVESTORS = 'investors.json'
 SELL_OFFERS = 'sell_offers.json'
@@ -7,14 +10,14 @@ SELL_OFFERS = 'sell_offers.json'
 USERNAME_CACHE = {'ids': {}, 'usernames': {}}
 
 def get(fname):
-    f = open(fname, 'r')
+    f = open(os.path.join(BASE_DIR, fname), 'r')
     file = json.loads(f.read())
     f.close()
 
     return file
 
 def write(fname, data):
-    f = open(fname, 'w')
+    f = open(os.path.join(BASE_DIR, fname), 'w')
     f.write(json.dumps(data))
     f.close()
 
