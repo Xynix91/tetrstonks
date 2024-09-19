@@ -39,6 +39,7 @@ bot = StonksBot()
 async def buy(ctx, stock, value):
     buy_stocks(str(ctx.author.id), stock, float(value))
     await ctx.channel.send(f"{ctx.author.name} bought {value} of {stock} stock!")
+    print(f"{ctx.author.name}: purchased {value} of {stock} stock!")
 
 @bot.command()
 async def selloffer(ctx, stock, price, maximum):
@@ -46,11 +47,13 @@ async def selloffer(ctx, stock, price, maximum):
     maximum = float(maximum)
     make_sell_offer(str(ctx.author.id), stock, float(price), float(maximum))
     await ctx.channel.send(f"{ctx.author.name} is now selling {maximum/price} {stock} stocks for {price} coins each!")
+    print(f"{ctx.author.name}: now selling {maximum/price} {stock} stocks for {price} coins each!")
 
 @bot.command()
 async def retractoffer(ctx, stock):
     retract_sell_offer(str(ctx.author.id), stock)
     await ctx.channel.send(f"{ctx.author.name} has retracted their selling offer of {stock} stocks.")
+    print(f"{ctx.author.name}: retracted their selling offer of {stock} stocks.")
 
 @bot.command()
 async def leaderboard(ctx):
@@ -60,6 +63,7 @@ async def leaderboard(ctx):
         username = await bot.fetch_user(i['id'])
         lines.append(f"{username}: {i['balance']} coins")
     await ctx.channel.send("\n".join(lines))
+    print(f"{ctx.author.name}: leaderboard displayed")
 
 @bot.command(aliases=['investorinfo'])
 async def playerinfo(ctx, id=None):
@@ -77,6 +81,7 @@ async def playerinfo(ctx, id=None):
     for stock, value in player_data['portfolio'].items():
         lines.append(f"{stock}: {value}")
     await ctx.channel.send("\n".join(lines))
+    print(f'{ctx.author.name}: {str(username)} player info displayed')
 
 @bot.command()
 async def showoffers(ctx, page=1):
@@ -90,6 +95,7 @@ async def showoffers(ctx, page=1):
         lines.append(f"{username}: {i['quantity']} {i['stock']} stocks for {i['price']} each")
     if (page - 1) * 10 < len(offer_data):
         await ctx.channel.send("\n".join(lines[(page - 1 * 10):min(page * 10, len(offer_data))]))
+    print(f"{ctx.author.name}: offers displayed")
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tetrstonks.server.server.settings")
 import sys
