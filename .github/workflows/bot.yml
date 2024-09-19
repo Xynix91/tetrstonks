@@ -1,5 +1,9 @@
 name: Bot Workflow
 
+on:
+  push:
+    branches: [main]
+
 jobs:
   get-secrets:
     runs-on: ubuntu-latest
