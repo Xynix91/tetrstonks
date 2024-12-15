@@ -1,0 +1,16 @@
+name: Bot Workflow
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  get-secrets:
+    runs-on: ubuntu-latest
+    env:
+      BOT_TOKEN: ${{ secrets.BOTTOKEN}}
+
+  run-bot:
+    runs-on: ubuntu-latest
+    run:
+      stonksbot.py
